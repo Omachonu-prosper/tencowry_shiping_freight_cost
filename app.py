@@ -1,35 +1,75 @@
-def shipping_freight_cost(weights, shipment_price):
+def shipping_freight_cost(products, shipment_price):
     """
     Function to address "Shipping /Freight cost"
 
-    Input:
-    weights -> an array of the weights of all products ordered
-    shipment_price -> the price of the shipment per kg
+    Input payload:
+    [
+        {"weight":"", "quantity":"2", "naira_price": "23800"},
+        {"weight":"3", "quantity":"1", "naira_price": "3200"},
+        {"weight":"3", "quantity":"2", "naira_price": "2100"}
+    ]
+
+    Workflow:
+    - Get the product with the highest weight
+    - Reduce the quantity of that product by 1
+    - Calculate the total weight
+    - Compute the total cost (total weight * shipment price)
 
     Output:
     total_cost -> the cost of shipment the customer is to pay
     """
-    if type(weights) is not list or not shipment_price:
-        return "Check the inputs given to the function"
-    
-    max_weight = max(weights)
-    weights.remove(max_weight)
+    max_weight_product = {
+        'weight': 0,
+        'index_in_products': None
+    }
+    for x, product in enumerate(products):
+        try:
+            weight = float(product['weight'])
 
-    # Round up to 1 if the weight of the heaviest product is less than 1kg
-    if max_weight < 1:
-        max_weight = 1
+            if weight < 1:
+                weight = 1
+        except:
+            product['weight'] = 1
+            weight = 1
 
-    total_weight = 2 * max_weight
-    for i in weights:
-        weight = 1 * i
-        total_weight += weight
+        if weight > max_weight_product['weight']:
+            max_weight_product['weight'] = weight
+            index = max_weight_product['index_in_products']
+            if index:
+                products[index]['quantity'] = int(products[index]['quantity']) + 1
+            
+            product['quantity'] = int(product['quantity']) - 1
+            max_weight_product['index_in_products'] = x
 
+    total_weight = max_weight_product['weight'] * 2
+    for product in products:
+        total_weight += float(product['weight']) * int(product['quantity'])
+        
     total_cost = shipment_price * total_weight
     return total_cost
 
 
 if __name__ == '__main__':
-    print(shipping_freight_cost([1, 1, 1, 0.5, 0.5], 10)) # Based on example 1 in document
-    print(shipping_freight_cost([1, 1, 1], 10)) # Based on example 2 in document
-    print(shipping_freight_cost([0.5, 0.5, 0.7], 10)) # The max weight is less than one
-    print(shipping_freight_cost(2, 10)) # Weights is not an array
+    products1 = [
+        {"weight":"1", "quantity":"2", "naira_price": "23800"},
+        {"weight":"3", "quantity":"1", "naira_price": "3200"},
+        {"weight":"3", "quantity":"2", "naira_price": "2100"}
+    ]
+
+    products2 = [
+        {"weight":"1", "quantity":"3", "naira_price": "3200"},
+        {"weight":"0.5", "quantity":"2", "naira_price": "2100"}
+    ]
+
+    products3 = [
+        {"weight":"1", "quantity":"3", "naira_price": "3200"}
+    ]
+
+    products4 = [
+        {"weight":"0.5", "quantity":"2", "naira_price": "3200"}
+    ]
+    
+    print(shipping_freight_cost(products1, 10))
+    print(shipping_freight_cost(products2, 10))
+    print(shipping_freight_cost(products3, 10))
+    print(shipping_freight_cost(products4, 10))
